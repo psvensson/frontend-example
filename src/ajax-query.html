@@ -1,0 +1,103 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-request.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="ajax-query">
+    <template>
+
+        <iron-ajax id="ajax"
+                   method="{{method}}"
+                   params="{{params}}"
+                   url="http://localhost:1750/{{target}}{{moreparams}}"
+                   handle-as="json"
+                   contentType="application/json"
+                   headers='{{headers}}'
+                   on-response="handleResponse"
+                   on-error="handleError"
+                   body="{{body}}"
+                   debounce-duration="300"
+        ></iron-ajax>
+
+        <!-- <iron-request id="ajax" response="{{aresponse}}"></iron-request> -->
+
+    </template>
+
+    <script>
+      Polymer( {
+
+        is: 'ajax-query',
+
+        properties: {
+          apitoken:        {type: String, observer: 'run'},
+          method:          {type: String},
+          headers:         {type: Object},
+          responseheaders: {type: Object, notify: true},
+          params:          {type: String, observer: 'run', value: ''},
+          target:          {type: String},
+          moreparams:      {type: String, observer: 'run', value: ''},
+          body:            {type: Object, observer: 'onBody'},
+          response:        {type: Object, notify: true},
+          error:           {type:String, notify:true},
+          count:           {type: Number, notify: true},
+          manual:         {type: Boolean, value: true},
+          toastmessage:{type:String, notify:true}
+        },
+
+        observer: [ 'handleResponse(aresponse)' ],
+
+
+        onBody: function ()
+        {
+
+        },
+
+
+        doRun:function()
+        {
+          this.run(true)
+        },
+
+        run: function (doit)
+        {
+          if (this.target && (!this.manual || (doit === true)))
+          {
+            this.$.ajax.generateRequest()
+          }
+
+        },
+
+        handleError: function ( e, r )
+        {
+          console.log( 'ajax-query handleError' )
+          console.dir( arguments )
+          var err = r.request.response
+          console.log('err = '+err)
+          if(err)
+          {
+            err = err.replace(/ *\{[^)]*\} */g, "");
+            err = err.replace(/ *\[[^)]*\] */g, "");
+            console.log( 'err= ' + err )
+            this.set('toastmessage', err)
+          }
+
+        },
+
+        handleResponse: function ( e, r )
+        {
+          console.log( '------------------------------ajax-query handleResponse' )
+          console.dir( arguments )
+          var headers = r.xhr.getAllResponseHeaders()
+          var c = r.xhr.getResponseHeader( 'X-total-count' )
+          //console.log('headers: '+headers+' count = '+c)
+          this.set( 'count', c )
+          //console.log('xhr is...')
+          //console.dir(r.xhr)
+          //console.dir(r.response)
+          this.set( 'response', r.response )
+          console.log('ajax-query set response to ')
+          console.dir(r.response)
+          this.set( 'responseheaders', headers )
+        }
+      } );
+    </script>
+</dom-module>

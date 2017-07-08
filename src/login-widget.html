@@ -1,0 +1,184 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="ajax-query.html">
+
+<link rel="import" href="shared-styles.html">
+
+<script src="//cdn.auth0.com/js/lock/10.18.0/lock.min.js"></script>
+
+<dom-module id="login-widget">
+    <template>
+        <style>
+            :host {
+                display: block;
+
+                padding: 10px;
+            }
+
+            .
+        </style>
+
+        <ajax-query id="login" target="login" method="GET" response="{{loginresponse}}"
+                    apitoken="{{token}}" params="{{loginparams}}" toastmessage="{{toastmessage}}"></ajax-query>
+
+        <ajax-query id="getuser" target="getCurrentUser" method="GET" response="{{getuser_response}}"
+                    apitoken="{{token}}" params="{{getuserparams}}" toastmessage="{{toastmessage}}"></ajax-query>
+
+        <div style="display:flex;flex-direction:row">
+            <!-- <template is="dom-if" if="{{!amidisabled}}"> -->
+            <template is="dom-if" if="{{user.picture}}">
+                <paper-tooltip for="user_responsible">{{user.name}}</paper-tooltip>
+                <img id="user_responsible" style="height:50px; margin-right:16px;" src="{{user.picture}}">
+            </template>
+            <div style="margin-top:10px">[[user.name]]</div>
+            <!-- </template> -->
+
+            <paper-button style="height:50px" class="fancy" raised on-tap="onLoginOut" disabled="{{amidisabled}}">{{loginout}}</paper-button>
+
+        </div>
+
+    </template>
+
+    <script>
+      class LoginWidget extends Polymer.Element
+      {
+        static get is() { return 'login-widget'; }
+
+        static get properties()
+        {
+          return {
+            user: {type: Object, notify: true},
+            loginout: {type: String, value: 'Login'},
+            toastmessage: {type: String, notify: true},
+            sid:{type:String},
+            userid:{type:String}
+          };
+        }
+
+        static get observers()
+        {
+          return [
+            'onLoginResponse(loginresponse)', 'onSid(sid)',
+            'onGetUserResponse(getuser_response)'
+          ];
+        }
+
+        // ----------------------------------------------------------------
+
+        onSid(s)
+        {
+          console.log('onsid callled. sid = '+this.sid)
+          if(this.sid && !this.user)
+          {
+            this.set('getuserparams', {sid: this.sid})
+            setTimeout(function()
+            {
+              this.$.getuser.doRun()
+            }.bind(this,0))
+          }
+        }
+
+        onGetUserResponse(u)
+        {
+          console.log('onGetUserResponse gut '+u)
+          console.dir(u)
+          if(u)
+          {
+            this.set('user', u)
+          }
+        }
+
+        onLoginOut()
+        {
+          console.log('onLoginOUt loginout == ' + this.loginout)
+          if (this.loginout == 'Login')
+          {
+            console.log('showing login dialog')
+            console.dir(this.lock)
+            this.lock.show()
+
+          }
+          else
+          {
+            console.log('logging out (unimplemented)')
+          }
+        }
+
+        /*
+
+        Go to your Auth0 Dashboard -> Clients -> (name of your client) and copy domain and client id settings and paste in the requisite places below
+
+         */
+        connectedCallback()
+        {
+          console.log('trying to create an Auth0Lock widget')
+          console.dir(Auth0Lock)
+          this.lock = new Auth0Lock(
+            '<AUTH0_CLIENT_ID>',
+            '<AUTH0_DOMAIN>', {
+              rememberLastLogin: true,
+              sso: true,
+              autoParsehash: true
+            }
+          );
+          console.log('setting up auth listener...')
+          console.log(this.lock)
+          // Listening for the authenticated event
+
+          this.lock.on('authenticated', function (authResult)
+          {
+            console.log('Aut0.lock *** authenticated ***')
+            // Use the token in authResult to getProfile() and save it to localStorage
+            this.lock.getProfile(authResult.idToken, function (error, profile)
+            {
+              if (error)
+              {
+                // Handle error
+                console.log('** auth0 ERROR **')
+                console.dir(error)
+                return;
+              }
+
+              console.log('** auth0 got profile')
+              console.dir(profile)
+              var token = authResult.accessToken
+              console.log('--- sending access token ' + token)
+              /*
+
+              Here is where we call our server to verify that we have a valid access token from the login provider we've chosen (via Auth0).
+              It will call Auth0 OOB and return a polished user object created by the server, which we hope will contain name, email address, session id (sid) and user id (id)
+
+               */
+              this.set('loginparams', {access_token: token})
+              this.$.login.doRun()
+            }.bind(this));
+          }.bind(this));
+
+          this.set('sid', localStorage.getItem('sid'))
+          this.set('userid', localStorage.getItem('userid'))
+          console.log('OK, lock event handler setup. this.sid = '+this.sid+', userid = '+this.userid)
+
+        }
+
+        /*
+        And here we get the suer object back, and saves the session id (sid) so that we can get the user object directly if the page is reloaded
+         */
+        onLoginResponse(userObj)
+        {
+          console.log('* login result: ' + userObj)
+          console.dir(userObj)
+          this.set('user', userObj)
+          this.set('sid', userObj.sid)
+          this.set('userid', ''+userObj.id)
+          localStorage.setItem('sid', userObj.sid)
+          console.log('sid is now '+userObj.sid+' userid is now '+this.userid)
+        }
+
+      }
+
+      console.log('registering login-widget...')
+      window.customElements.define(LoginWidget.is, LoginWidget);
+
+    </script>
+</dom-module>
