@@ -46,3 +46,12 @@ The file index.html loads the web component framework and contains the app start
 
 Almost everything in this app comes directly from one of the polymer-cli created starting PRPLE project. 
 The only additions are the login widget and a convenience wrapper for Ajax calls to the server-side.
+
+## URLs
+
+The login-widget assume that the back-end can be contacted at http://localhost/1750 and uses these specific Ajax calls;
+
+
+    http://localhost/1750/login?access_token=xxxxxxxx
+    http://localhost/1750/getCurrentUser?sid=yyyyyyyy
+    
