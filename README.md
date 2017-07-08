@@ -34,15 +34,15 @@ routing for the app:
     polymer serve --open
 
 ### Important parts
-This project shows how to create a Polymer web component which uses the Auth0 service to login a user, and which then sends the access token obtained from Auth0
+This project shows how to create a Polymer web component which uses the Auth0 service to let a user login, and which then sends the access token obtained from Auth0
 to a server back-end which can verify the token and return a proper user object back to the component.
  
 The component then expose this object to my-app, which in turn wires any changes to the my-view1 component (it displays the user name).
 Localstorage is use to save a session id which is assumed to be present on the returned user object, and another call to the server
- wil be made if the page is reloaded and the session id is prsent to reload the user object directly without having to
+ will be made if the page is reloaded and the session id is present to reload the user object directly without having to
  login again.
 
 The file index.html loads the web component framework and contains the app starting component, which contain everything else - my-app.
 
 Almost everything in this app comes directly from one of the polymer-cli created starting PRPLE project. 
-The only additions are the login widget and a convenience erapper for Ajax calls to the server-side.
+The only additions are the login widget and a convenience wrapper for Ajax calls to the server-side.
