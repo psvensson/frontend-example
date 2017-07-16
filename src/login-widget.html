@@ -22,6 +22,9 @@
         <ajax-query id="login" target="login" method="GET" response="{{loginresponse}}"
                     apitoken="{{token}}" params="{{loginparams}}" toastmessage="{{toastmessage}}"></ajax-query>
 
+        <ajax-query id="logout" target="logout" method="GET" response="{{logoutresponse}}"
+                    apitoken="{{token}}" params="{{logoutparams}}" toastmessage="{{toastmessage}}"></ajax-query>
+
         <ajax-query id="getuser" target="getCurrentUser" method="GET" response="{{getuser_response}}"
                     apitoken="{{token}}" params="{{getuserparams}}" toastmessage="{{toastmessage}}"></ajax-query>
 
@@ -112,6 +115,7 @@
             this.set('loginout', 'Login')
             localStorage.setItem('sid', '')
             localStorage.setItem('userid', '')
+            this.$.logout.doRun()
             this.lock.logout({returnTo:'< URL FOR LOGOUT >'})
           }
         }
