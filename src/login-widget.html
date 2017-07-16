@@ -86,12 +86,19 @@
           if(u)
           {
             this.set('user', u)
+            this.set('loginout', 'Logout')
           }
         }
 
+        /*
+        If you're running this on localhost (which you probably do to begin with, the returnTo parameter in the logout call below
+        should be the one that polymer server gives you (for example http://localhost:8081), if you're deploying this code on a 'rel' web-server, then
+        the url should be that of the web-service where this page resides (for example https://myservice.com). In both caes, you need to add the
+        urls as "Allowed Callback URLs" in the Auth0 client settings page.
+        */
         onLoginOut()
         {
-          console.log('onLoginOUt loginout == ' + this.loginout)
+          console.log('onLoginOut loginout == ' + this.loginout)
           if (this.loginout == 'Login')
           {
             console.log('showing login dialog')
@@ -102,6 +109,10 @@
           else
           {
             console.log('logging out (unimplemented)')
+            this.set('loginout', 'Login')
+            localStorage.setItem('sid', '')
+            localStorage.setItem('userid', '')
+            this.lock.logout({returnTo:'< URL FOR LOGOUT >'})
           }
         }
 
@@ -115,14 +126,14 @@
           console.log('trying to create an Auth0Lock widget')
           console.dir(Auth0Lock)
           this.lock = new Auth0Lock(
-            '<AUTH0_CLIENT_ID>',
-            '<AUTH0_DOMAIN>', {
+            '< AUTH0 CLIENT ID >',
+            '< AUTH0 CLIENT DOMAIN >', {
               rememberLastLogin: true,
               sso: true,
               autoParsehash: true
             }
           );
-          console.log('setting up auth listener...')
+          console.log('setting up auth0 listener...')
           console.log(this.lock)
           // Listening for the authenticated event
 
